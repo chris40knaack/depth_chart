@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roster Editor</title>
+  <style>html,body,#root{margin:0;height:100%;background:#082316;}</style>
+
+  <!-- React + Babel from CDN (needs internet on first open) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Shim: back the artifact-runtime window.storage with localStorage so
+       edits persist between sessions in a normal browser. -->
+  <script>
+    window.storage = {
+      async get(key) {
+        const value = localStorage.getItem(key);
+        return value === null ? null : { value };
+      },
+      async set(key, value) {
+        localStorage.setItem(key, String(value));
+      },
+    };
+  </script>
+
+  <!-- Roster data baked in at build time from athletes.json -->
+  <script>
+    window.__ATHLETES__ =
+{ "schemaVersion": 1, "sources": {}, "athletes": [] };
+  </script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // ============================================================
+    //  ROSTER EDITOR  (edit the structured athlete data scheme)
+    //  - Loads athletes baked in at build time (window.__ATHLETES__),
+    //    or imported from an athletes.json file.
+    //  - Edit every parameter; derived fields recompute live.
+    //  - Export writes a schema-valid athletes.json you can drop in.
+    //  - Edits persist between sessions via window.storage.
+    //  See ATHLETES_SCHEMA.md for the field contract.
+    // ============================================================
+
+    const SEED_DATA =
+      typeof window !== "undefined" && window.__ATHLETES__
+        ? window.__ATHLETES__
+        : { schemaVersion: 1, sources: {}, athletes: [] };
+
+    const PUNT_SLOTS = ["LE", "LT", "LG", "LS", "RG", "RT", "RE", "LW", "PP", "RW", "P"];
+    const STORAGE_KEY = "rostereditor:v1";
+
+    const numOrNull = (v) => { const t = String(v).trim(); if (t === "") return null; const n = Number(t); return Number.isNaN(n) ? null : n; };
+    const strOrNull = (v) => { const t = String(v).trim(); return t === "" ? null : t; };
+    const getIn = (obj, path) => path.reduce((o, k) => (o == null ? undefined : o[k]), obj);
+    function setIn(obj, path, value) {
+      if (path.length === 0) return value;
+      const [k, ...rest] = path;
+      const base = obj && typeof obj === "object" ? obj : {};
+      return { ...base, [k]: setIn(base[k], rest, value) };
+    }
+    function parseFeetInches(disp) {
+      if (disp == null) return null;
+      const m = String(disp).trim().match(/^(\d+)\s*-\s*([\d.]+)$/);
+      return m ? parseFloat(m[1]) * 12 + parseFloat(m[2]) : null;
+    }
+
+    // Recompute the derived fields (full name, *Inches, liftTotal, best agility)
+    // so the data stays internally consistent — matches build_athletes.ps1.
+    function withDerived(a) {
+      const s = a.metrics.strength;
+      const lifts = [s.benchMaxLb, s.squatMaxLb, s.cleanMaxLb].filter((v) => v != null);
+      const liftTotalLb = lifts.length ? lifts.reduce((x, y) => x + y, 0) : null;
+      let benchRep = s.benchRep;
+      if (benchRep) {
+        const w = benchRep.weightLb ?? null, r = benchRep.reps ?? null;
+        benchRep = w == null && r == null ? null : { weightLb: w, reps: r };
+      }
+      const ag = a.metrics.agility;
+      const pair = [ag.proAgilityRightSec, ag.proAgilityLeftSec].filter((v) => v != null && v > 0);
+      const proAgilityBestSec = pair.length ? Math.min(...pair) : null;
+      const hi = parseFeetInches(a.measurements.heightDisplay);
+      const bji = parseFeetInches(a.metrics.jump.broadJumpDisplay);
+      return {
+        ...a,
+        name: { ...a.name, full: [a.name.first, a.name.last].filter(Boolean).join(" ") },
+        measurements: { ...a.measurements, heightInches: hi != null ? hi : a.measurements.heightInches },
+        metrics: {
+          ...a.metrics,
+          strength: { ...s, liftTotalLb, benchRep },
+          agility: { ...ag, proAgilityBestSec },
+          jump: { ...a.metrics.jump, broadJumpInches: bji != null ? bji : a.metrics.jump.broadJumpInches },
+        },
+      };
+    }
+    // Stable, human-readable id from a name (matches build_athletes.ps1). New
+    // athletes start as "athlete" since they have no name yet; the id is internal
+    // and stays fixed once assigned, even if the name is edited later.
+    function slugify(s) { const t = String(s || "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase(); return t || "athlete"; }
+    function uniqueId(base, taken) { const s = slugify(base); let cand = s, n = 2; while (taken.has(cand)) { cand = s + "-" + n; n++; } return cand; }
+    function blankAthlete(id) {
+      return withDerived({
+        id, number: null, grade: null, active: true,
+        name: { first: "", last: "", full: "" },
+        positions: { offense: null, defense: null, puntPrimary: null, puntBackup: null },
+        measurements: { heightInches: null, heightDisplay: null, weightLb: null },
+        metrics: {
+          strength: { benchMaxLb: null, squatMaxLb: null, cleanMaxLb: null, liftTotalLb: null, benchRep: null },
+          speed: { fortyYardSec: null, flyIn10YardSec: null, conversionMph: null },
+          agility: { proAgilityRightSec: null, proAgilityLeftSec: null, proAgilityBestSec: null },
+          jump: { verticalJumpInches: null, vertOvrInches: null, broadJumpInches: null, broadJumpDisplay: null },
+          power: { truckStick: null },
+        },
+      });
+    }
+
+    const fieldStyle = { display: "flex", flexDirection: "column", gap: 3 };
+    const labelStyle = { fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase", opacity: 0.7 };
+
+    function Group({ title, children }) {
+      return (
+        <div style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 10, padding: "10px 12px 12px", background: "rgba(255,255,255,.03)", marginBottom: 12 }}>
+          <div className="osw" style={{ fontSize: 12, letterSpacing: 1.5, color: "#ffc72c", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: "8px 12px" }}>{children}</div>
+        </div>
+      );
+    }
+
+    function RosterEditor() {
+      const [athletes, setAthletes] = useState(() => (SEED_DATA.athletes || []).map(withDerived));
+      const [selectedId, setSelectedId] = useState(() => (SEED_DATA.athletes && SEED_DATA.athletes[0] ? SEED_DATA.athletes[0].id : null));
+      const [query, setQuery] = useState("");
+      const [status, setStatus] = useState("");
+      const [statusType, setStatusType] = useState("info");
+      const [loaded, setLoaded] = useState(false);
+      const fileRef = useRef(null);
+
+      useEffect(() => {
+        (async () => {
+          try {
+            const res = await window.storage.get(STORAGE_KEY);
+            if (res && res.value) {
+              const s = JSON.parse(res.value);
+              if (s.athletes && s.athletes.length) {
+                const list = s.athletes.map(withDerived);
+                setAthletes(list); setSelectedId(list[0].id);
+                setStatus("Loaded your saved edits."); setStatusType("ok");
+              }
+            }
+          } catch (e) {}
+          setLoaded(true);
+        })();
+      }, []);
+
+      useEffect(() => {
+        if (!loaded) return;
+        const t = setTimeout(async () => { try { await window.storage.set(STORAGE_KEY, JSON.stringify({ athletes })); } catch (e) {} }, 400);
+        return () => clearTimeout(t);
+      }, [athletes, loaded]);
+
+      // new athletes get a unique name-slug id (see uniqueId / slugify above)
+      const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return athletes;
+        return athletes.filter((a) =>
+          (a.name.full || "").toLowerCase().includes(q) ||
+          String(a.number || "").includes(q) ||
+          (a.positions.puntPrimary || "").toLowerCase().includes(q));
+      }, [athletes, query]);
+      const activeCount = useMemo(() => athletes.filter((a) => a.active).length, [athletes]);
+      const selected = athletes.find((a) => a.id === selectedId) || null;
+
+      const set = (path, value) => setAthletes((prev) => prev.map((a) => (a.id === selectedId ? withDerived(setIn(a, path, value)) : a)));
+      const addAthlete = () => { const a = blankAthlete(uniqueId("athlete", new Set(athletes.map((x) => x.id)))); setAthletes((p) => [...p, a]); setSelectedId(a.id); setStatus("Added a new athlete — fill in the parameters."); setStatusType("ok"); };
+      const removeAthlete = (id) => { setAthletes((p) => p.filter((a) => a.id !== id)); if (selectedId === id) setSelectedId(null); setStatus("Removed athlete."); setStatusType("info"); };
+      const resetSeed = () => { const list = (SEED_DATA.athletes || []).map(withDerived); setAthletes(list); setSelectedId(list[0] ? list[0].id : null); setStatus("Reset to the built-in roster."); setStatusType("info"); };
+
+      const exportJSON = () => {
+        const data = { schemaVersion: SEED_DATA.schemaVersion || 1, generated: new Date().toISOString().slice(0, 10), sources: SEED_DATA.sources || {}, count: athletes.length, athletes };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob); const el = document.createElement("a");
+        el.href = url; el.download = "athletes.json"; el.click(); URL.revokeObjectURL(url);
+        setStatus("Exported athletes.json (" + athletes.length + " athletes). Save it over the project file, then re-run the build scripts."); setStatusType("ok");
+      };
+      const onImport = (file) => {
+        if (!file) return;
+        const rd = new FileReader();
+        rd.onload = (e) => {
+          try {
+            const parsed = JSON.parse(String(e.target.result));
+            const list = (Array.isArray(parsed) ? parsed : parsed.athletes) || [];
+            if (!list.length) { setStatus("No athletes found in that file."); setStatusType("err"); return; }
+            const mapped = list.map(withDerived);
+            setAthletes(mapped); setSelectedId(mapped[0].id);
+            setStatus("Imported " + mapped.length + " athletes."); setStatusType("ok");
+          } catch (err) { setStatus("Could not parse JSON: " + err.message); setStatusType("err"); }
+        };
+        rd.readAsText(file);
+      };
+
+      // --- field renderers bound to the selected athlete ---
+      const Num = (label, path, step) => (
+        <label key={path.join(".")} style={fieldStyle}>
+          <span style={labelStyle}>{label}</span>
+          <input className="inp" type="number" step={step || "any"} value={getIn(selected, path) ?? ""} onChange={(e) => set(path, numOrNull(e.target.value))} />
+        </label>
+      );
+      const Txt = (label, path, placeholder) => (
+        <label key={path.join(".")} style={fieldStyle}>
+          <span style={labelStyle}>{label}</span>
+          <input className="inp" type="text" placeholder={placeholder || ""} value={getIn(selected, path) ?? ""} onChange={(e) => set(path, strOrNull(e.target.value))} />
+        </label>
+      );
+      const Slot = (label, path) => (
+        <label key={path.join(".")} style={fieldStyle}>
+          <span style={labelStyle}>{label}</span>
+          <select className="sel" value={getIn(selected, path) ?? ""} onChange={(e) => set(path, e.target.value || null)}>
+            <option value="">—</option>
+            {PUNT_SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+      );
+      const Bool = (label, path) => (
+        <label key={path.join(".")} style={fieldStyle}>
+          <span style={labelStyle}>{label}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, height: 24 }}>
+            <input type="checkbox" checked={!!getIn(selected, path)} onChange={(e) => set(path, e.target.checked)} />
+            <span style={{ fontSize: 13 }}>{getIn(selected, path) ? "Active" : "Inactive"}</span>
+          </div>
+        </label>
+      );
+      const RO = (label, value, suffix) => (
+        <label key={label} style={fieldStyle}>
+          <span style={labelStyle}>{label} <em style={{ opacity: 0.5, fontStyle: "normal" }}>· auto</em></span>
+          <div className="ro">{value == null ? "—" : value}{value != null && suffix ? " " + suffix : ""}</div>
+        </label>
+      );
+
+      return (
+        <div style={{ minHeight: "100%", background: "radial-gradient(120% 120% at 50% 0%, #15422a 0%, #0c2e1d 55%, #082316 100%)", fontFamily: "'Barlow Condensed','Oswald',system-ui,sans-serif", color: "#eef3ee", padding: "20px 16px 60px", boxSizing: "border-box" }}>
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
+            .osw{font-family:'Oswald',sans-serif;letter-spacing:.5px;}
+            .btn{cursor:pointer;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eef3ee;padding:7px 12px;border-radius:7px;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;transition:.15s;}
+            .btn:hover{background:rgba(255,199,44,.18);border-color:#ffc72c;}
+            .sel{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eef3ee;border-radius:6px;padding:5px 6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;outline:none;}
+            .sel:focus{border-color:#ffc72c;}
+            .sel option{background:#123524;color:#eef3ee;}
+            .inp{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:6px;color:#eef3ee;outline:none;font-family:'Barlow Condensed',sans-serif;font-size:14px;padding:5px 6px;}
+            .inp:focus{border-color:#ffc72c;}
+            .ro{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:#bfe9cf;padding:5px 6px;border:1px dashed rgba(255,255,255,.16);border-radius:6px;background:rgba(0,0,0,.18);}
+            .row:hover{background:rgba(255,255,255,.06);}
+          `}</style>
+
+          <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+              <div>
+                <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#ffc72c", textTransform: "uppercase" }}>Special Teams · Data</div>
+                <div className="osw" style={{ color: "#fff", fontSize: 32, fontWeight: 700 }}>Roster Editor</div>
+              </div>
+              <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                <button className="btn" onClick={addAthlete}>+ Add athlete</button>
+                <button className="btn" onClick={() => fileRef.current && fileRef.current.click()}>Import JSON</button>
+                <button className="btn" onClick={exportJSON}>Export JSON</button>
+                <button className="btn" onClick={resetSeed}>Reset</button>
+                <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: "none" }} onChange={(e) => onImport(e.target.files && e.target.files[0])} />
+              </div>
+            </div>
+
+            {status && <div style={{ fontSize: 13, padding: "8px 12px", borderRadius: 8, marginBottom: 12, border: "1px solid " + (statusType === "err" ? "#ff8c8c" : statusType === "ok" ? "#8ce0a4" : "rgba(255,255,255,.2)"), background: "rgba(0,0,0,.18)", color: statusType === "err" ? "#ffc4c4" : statusType === "ok" ? "#bdf2cd" : "#cfe0d4" }}>{status}</div>}
+
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,300px) minmax(0,1fr)", gap: 16, alignItems: "start" }}>
+              {/* roster list */}
+              <div>
+                <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#ffc72c", textTransform: "uppercase", marginBottom: 8 }}>
+                  Athletes ({athletes.length}) · {activeCount} active
+                </div>
+                <input className="inp" placeholder="Search name / number / slot…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 8 }} />
+                <div style={{ maxHeight: "70vh", overflowY: "auto", border: "1px solid rgba(255,255,255,.12)", borderRadius: 10, padding: 6, background: "rgba(0,0,0,.14)" }}>
+                  {filtered.length === 0 && <div style={{ opacity: 0.5, fontSize: 13, padding: 10 }}>No matches.</div>}
+                  {filtered.map((a) => {
+                    const isSel = a.id === selectedId;
+                    return (
+                      <div key={a.id} className="row" onClick={() => setSelectedId(a.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 7px", borderRadius: 7, marginBottom: 3, cursor: "pointer", background: isSel ? "rgba(255,199,44,.16)" : "transparent", border: isSel ? "1px solid #ffc72c" : "1px solid transparent" }}>
+                        <span className="osw" style={{ minWidth: 30, textAlign: "center", fontWeight: 700, fontSize: 13, color: a.number == null ? "rgba(255,255,255,.35)" : "#ffc72c" }}>{a.number == null ? "—" : a.number}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: a.active ? 1 : 0.55 }}>{a.name.full || "(unnamed)"}</span>
+                        <span style={{ fontSize: 11, opacity: 0.6 }}>{a.grade ? "gr" + a.grade : ""} {a.positions.puntPrimary || ""}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* detail editor */}
+              <div>
+                {!selected ? (
+                  <div style={{ opacity: 0.55, fontSize: 14, padding: 24, border: "1px dashed rgba(255,255,255,.2)", borderRadius: 12 }}>
+                    Select an athlete on the left, or add a new one.
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <div className="osw" style={{ fontSize: 20, fontWeight: 700 }}>{selected.name.full || "(unnamed)"} <span style={{ color: "#ffc72c" }}>{selected.number == null ? "" : "#" + selected.number}</span></div>
+                      <button className="btn" onClick={() => removeAthlete(selected.id)} style={{ borderColor: "rgba(255,140,140,.5)", color: "#ffb4b4" }}>Delete</button>
+                    </div>
+
+                    <Group title="Identity">
+                      {Txt("First", ["name", "first"])}
+                      {Txt("Last", ["name", "last"], "incl. suffix")}
+                      {RO("Full name", selected.name.full)}
+                      {Num("Number", ["number"], "1")}
+                      {Num("Grade", ["grade"], "1")}
+                      {Bool("Active", ["active"])}
+                    </Group>
+
+                    <Group title="Positions">
+                      {Txt("Offense", ["positions", "offense"], "WR, OL…")}
+                      {Txt("Defense", ["positions", "defense"], "LB, DL…")}
+                      {Slot("Punt — primary", ["positions", "puntPrimary"])}
+                      {Slot("Punt — backup", ["positions", "puntBackup"])}
+                    </Group>
+
+                    <Group title="Measurements">
+                      {Txt("Height (F-I)", ["measurements", "heightDisplay"], "6-2")}
+                      {RO("Height", selected.measurements.heightInches, "in")}
+                      {Num("Weight", ["measurements", "weightLb"], "1")}
+                    </Group>
+
+                    <Group title="Strength">
+                      {Num("Bench max (lb)", ["metrics", "strength", "benchMaxLb"], "5")}
+                      {Num("Squat max (lb)", ["metrics", "strength", "squatMaxLb"], "5")}
+                      {Num("Clean max (lb)", ["metrics", "strength", "cleanMaxLb"], "5")}
+                      {RO("Lift total", selected.metrics.strength.liftTotalLb, "lb")}
+                      {Num("Bench rep wt (lb)", ["metrics", "strength", "benchRep", "weightLb"], "5")}
+                      {Num("Bench reps", ["metrics", "strength", "benchRep", "reps"], "1")}
+                    </Group>
+
+                    <Group title="Speed">
+                      {Num("40-yard (s)", ["metrics", "speed", "fortyYardSec"], "0.01")}
+                      {Num("Fly-in 10 (s)", ["metrics", "speed", "flyIn10YardSec"], "0.001")}
+                      {Num("Conversion (mph)", ["metrics", "speed", "conversionMph"], "0.01")}
+                    </Group>
+
+                    <Group title="Agility">
+                      {Num("Pro-agility R (s)", ["metrics", "agility", "proAgilityRightSec"], "0.001")}
+                      {Num("Pro-agility L (s)", ["metrics", "agility", "proAgilityLeftSec"], "0.001")}
+                      {RO("Best (min)", selected.metrics.agility.proAgilityBestSec, "s")}
+                    </Group>
+
+                    <Group title="Jump">
+                      {Num("Vertical (in)", ["metrics", "jump", "verticalJumpInches"], "0.1")}
+                      {Num("Vert OVR (in)", ["metrics", "jump", "vertOvrInches"], "0.1")}
+                      {Txt("Broad (F-I)", ["metrics", "jump", "broadJumpDisplay"], "7-2.5")}
+                      {RO("Broad", selected.metrics.jump.broadJumpInches, "in")}
+                    </Group>
+
+                    <Group title="Power">
+                      {Num("Truck stick", ["metrics", "power", "truckStick"], "1")}
+                    </Group>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, fontSize: 11.5, opacity: 0.55, lineHeight: 1.5 }}>
+              Edits autosave in this browser. <strong>Fields tagged “auto”</strong> recompute from what you type and can’t be edited directly.
+              Use <strong>Export JSON</strong> to download an updated athletes.json (drop it into the project and re-run the build scripts to update the other tools).
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<RosterEditor />);
+  </script>
+</body>
+</html>
