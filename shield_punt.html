@@ -124,6 +124,8 @@
       const [loaded, setLoaded] = useState(false);
       const [view, setView] = useState("0"); // field diagram: "0"=starters, "1".."4"=backup level, "all"
       const [activeOnly, setActiveOnly] = useState(false); // filter roster + dropdowns to active players
+      const [dragId, setDragId] = useState(null);  // player id being dragged
+      const [dropKey, setDropKey] = useState(null); // hovered drop target ("LE:0" or "field:LE")
       const assignFileRef = useRef(null);
       const athletesFileRef = useRef(null);
 
@@ -181,6 +183,12 @@
       const shownRoster = activeOnly ? roster.filter((p) => p.active) : roster;
 
       const setSlot = (slot, d, id) => setAssign((prev) => ({ ...prev, [slot]: padDepth(prev[slot]).map((v, i) => (i === d ? id : v)) }));
+
+      // drag a roster player onto a depth row or field position to assign them
+      const onDragStartPlayer = (e, id) => { e.dataTransfer.setData("text/plain", id); e.dataTransfer.effectAllowed = "copy"; setDragId(id); };
+      const allowDrop = (e, key) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; if (dropKey !== key) setDropKey(key); };
+      const doDrop = (e, slot, d) => { e.preventDefault(); e.stopPropagation(); const id = e.dataTransfer.getData("text/plain") || dragId; if (id) setSlot(slot, d, id); setDropKey(null); setDragId(null); };
+      const endDrag = () => { setDropKey(null); setDragId(null); };
 
       const resetDefault = () => {
         setAssign(seedAssign());
@@ -299,15 +307,16 @@
             <div style={{ borderRadius: 14, overflow: "hidden", boxShadow: "0 18px 40px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.08)" }}>
               <svg viewBox={"0 0 " + FW + " " + FH} style={{ width: "100%", display: "block", background: "linear-gradient(180deg,#15532f,#0e3c22)" }}>
                 {Array.from({ length: 7 }).map((_, i) => <line key={i} x1="0" x2={FW} y1={70 + i * 70} y2={70 + i * 70} stroke="#fff" strokeOpacity="0.15" strokeWidth="1.5" />)}
-                <line x1="0" x2={FW} y1={FH * 0.33 + 30} y2={FH * 0.33 + 30} stroke="#ffc72c" strokeOpacity="0.5" strokeWidth="2" strokeDasharray="7 6" />
-                <text x="10" y={FH * 0.33 + 24} className="osw" fill="#ffc72c" fontSize="11" opacity="0.8">LOS</text>
+                <line x1="0" x2={FW} y1={FH * 0.33 - 32} y2={FH * 0.33 - 32} stroke="#ffc72c" strokeOpacity="0.5" strokeWidth="2" strokeDasharray="7 6" />
+                <text x="10" y={FH * 0.33 - 38} className="osw" fill="#ffc72c" fontSize="11" opacity="0.8">LOS</text>
                 {SLOTS.map((s) => {
                   const cx = s.x * FW, cy = s.y * FH;
                   const lines = slotLines(s.key);
                   const isSel = selected === s.key;
                   return (
-                    <g key={s.key} className="player" style={{ cursor: "pointer" }} onClick={() => setSelected(isSel ? null : s.key)}>
-                      <circle cx={cx} cy={cy} r="22" fill={GROUP_COLORS[s.group]} stroke={isSel ? "#ff5722" : "#0e3c22"} strokeWidth={isSel ? 4 : 2.5} />
+                    <g key={s.key} className="player" style={{ cursor: "pointer" }} onClick={() => setSelected(isSel ? null : s.key)}
+                       onDragOver={(e) => allowDrop(e, "field:" + s.key)} onDrop={(e) => doDrop(e, s.key, 0)}>
+                      <circle cx={cx} cy={cy} r="22" fill={GROUP_COLORS[s.group]} stroke={dropKey === "field:" + s.key ? "#ffc72c" : isSel ? "#ff5722" : "#0e3c22"} strokeWidth={dropKey === "field:" + s.key || isSel ? 4 : 2.5} />
                       <text x={cx} y={cy + 5} textAnchor="middle" className="osw" fontSize="14" fontWeight="700" fill="#11241a">{s.key}</text>
                       {lines.length === 0
                         ? <text x={cx} y={cy + 36} textAnchor="middle" className="osw" fontSize="12.5" fontWeight="600" fill="#fff" opacity="0.45">—</text>
@@ -366,8 +375,10 @@
                           const inactive = player && !player.active;
                           const levelLabel = d === 0 ? "starter" : "backup " + d;
                           const opts = activeOnly ? roster.filter((p) => p.active || p.id === cur) : roster;
+                          const overKey = s.key + ":" + d;
                           return (
-                            <div key={d} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <div key={d} onDragOver={(e) => allowDrop(e, overKey)} onDrop={(e) => doDrop(e, s.key, d)}
+                                 style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 6, outline: dropKey === overKey ? "2px dashed #ffc72c" : "none", outlineOffset: 1, background: dropKey === overKey ? "rgba(255,199,44,.12)" : "transparent" }}>
                               <span style={{ flex: "0 0 14px", fontSize: 11, color: d === 0 ? "#ffc72c" : "#8fae9d", fontWeight: 700 }}>{d === 0 ? "S" : d}</span>
                               <select className="sel" value={cur == null ? "" : cur} onChange={(e) => setSlot(s.key, d, e.target.value || null)}
                                       style={{ ...(d === 0 ? { background: "rgba(255,199,44,.14)" } : {}), ...(inactive ? { borderColor: "#ff8c8c", boxShadow: "0 0 0 1px #ff8c8c" } : dup ? { borderColor: "#ffb74d", boxShadow: "0 0 0 1px #ffb74d" } : {}) }}>
@@ -398,7 +409,9 @@
                   {shownRoster.map((p) => {
                     const isStarter = starterIds.has(p.id);
                     return (
-                      <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 7px", borderRadius: 7, marginBottom: 3, background: isStarter ? "rgba(255,199,44,.10)" : "transparent", opacity: p.active ? 1 : 0.5 }}>
+                      <div key={p.id} draggable onDragStart={(e) => onDragStartPlayer(e, p.id)} onDragEnd={endDrag} title="Drag onto a slot or field position"
+                           style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 7px", borderRadius: 7, marginBottom: 3, cursor: "grab", background: dragId === p.id ? "rgba(255,199,44,.22)" : isStarter ? "rgba(255,199,44,.10)" : "transparent", opacity: p.active ? 1 : 0.5 }}>
+                        <span style={{ flex: "0 0 9px", color: "rgba(255,255,255,.3)", fontSize: 12, lineHeight: 1 }}>⠿</span>
                         <span style={{ width: 7, height: 7, borderRadius: 9, flex: "0 0 7px", background: isStarter ? "#ffc72c" : "rgba(255,255,255,.22)" }} title={isStarter ? "Starting" : "Available"} />
                         <span className="osw" style={{ flex: "0 0 30px", textAlign: "center", fontSize: 12, color: p.number == null ? "rgba(255,255,255,.35)" : "#ffc72c", fontWeight: 700 }}>{p.number == null ? "—" : p.number}</span>
                         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
@@ -409,7 +422,7 @@
                     );
                   })}
                 </div>
-                <div style={{ fontSize: 11.5, opacity: .55, marginTop: 8, lineHeight: 1.5 }}>Gold dot = starter. Red “inactive” = not active in athletes.json (edit status in the Roster Editor). The lineup warns if an inactive player is assigned.</div>
+                <div style={{ fontSize: 11.5, opacity: .55, marginTop: 8, lineHeight: 1.5 }}><strong>Drag a player</strong> onto a depth-chart row or a field circle to assign them (or use the dropdowns). Gold dot = starter; red “inactive” = not active in athletes.json. The lineup warns on duplicates and inactive players.</div>
               </div>
             </div>
 
