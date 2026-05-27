@@ -1,0 +1,4 @@
+# never publish data files or a stray nested build folder from here
+dist/
+*.json
+*.csv
