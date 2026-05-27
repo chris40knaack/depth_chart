@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shield Punt Designer</title>
-  <style>html,body,#root{margin:0;height:100%;background:#082316;}</style>
+  <style>html,body,#root{margin:0;height:100%;background:#07182b;}</style>
 
   <!-- React + Babel from CDN (needs internet on first open) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -53,7 +53,7 @@
         assignmentsFile: "assignments.json",
         lineY: 0.33, lineLabel: "LOS",
         deriveTags: ["puntPrimary", "puntBackup"], // seed a lineup from athletes' punt tags
-        groupColors: { end: "#d8e9ff", tackle: "#ffffff", guard: "#ffd54a", snap: "#e6e6e6", shield: "#ffc72c", punter: "#e6e6e6" },
+        groupColors: { end: "#d8e9ff", tackle: "#ffffff", guard: "#a9d3ff", snap: "#e6e6e6", shield: "#5bb0ff", punter: "#e6e6e6" },
         groupLabel: { end: "End — speed", tackle: "Tackle", guard: "Guard — strength", snap: "Specialist", shield: "Shield — size", punter: "Specialist" },
         slots: [
           { key: "LE", name: "Left End", x: 0.16, y: 0.33, group: "end" },
@@ -75,7 +75,7 @@
         assignmentsFile: "kickoff_assignments.json",
         lineY: 0.30, lineLabel: "KICK",
         deriveTags: [], // athletes.json has no kickoff tags — start empty
-        groupColors: { coverage: "#d8e9ff", contain: "#ffc72c", kicker: "#e6e6e6" },
+        groupColors: { coverage: "#d8e9ff", contain: "#5bb0ff", kicker: "#e6e6e6" },
         groupLabel: { coverage: "Coverage", contain: "Contain — outside / safety", kicker: "Kicker" },
         slots: [
           { key: "L5", name: "Left 5 — contain", x: 0.07, y: 0.30, group: "contain" },
@@ -97,7 +97,7 @@
         assignmentsFile: "offense_assignments.json",
         lineY: 0.30, lineLabel: "LOS",
         deriveTags: [],
-        groupColors: { ol: "#ffffff", te: "#ffd54a", wr: "#d8e9ff", back: "#ffc72c", qb: "#e6e6e6" },
+        groupColors: { ol: "#ffffff", te: "#a9d3ff", wr: "#d8e9ff", back: "#5bb0ff", qb: "#e6e6e6" },
         groupLabel: { ol: "O-Line", te: "Tight End", wr: "Receiver", back: "Running Back", qb: "Quarterback" },
         slots: [
           { key: "X", name: "X — split end", x: 0.07, y: 0.34, group: "wr" },
@@ -119,7 +119,7 @@
         assignmentsFile: "defense_assignments.json",
         lineY: 0.30, lineLabel: "LOS",
         deriveTags: [],
-        groupColors: { dl: "#d8e9ff", lb: "#ffc72c", db: "#e6e6e6" },
+        groupColors: { dl: "#d8e9ff", lb: "#5bb0ff", db: "#e6e6e6" },
         groupLabel: { dl: "D-Line", lb: "Linebacker", db: "Defensive Back" },
         slots: [
           { key: "LE", name: "Left End", x: 0.32, y: 0.30, group: "dl" },
@@ -141,7 +141,7 @@
         assignmentsFile: "pat_assignments.json",
         lineY: 0.30, lineLabel: "LOS",
         deriveTags: [],
-        groupColors: { line: "#ffffff", wing: "#ffd54a", hold: "#d8e9ff", kicker: "#e6e6e6" },
+        groupColors: { line: "#ffffff", wing: "#a9d3ff", hold: "#d8e9ff", kicker: "#e6e6e6" },
         groupLabel: { line: "Line", wing: "Wing", hold: "Holder", kicker: "Kicker" },
         slots: [
           { key: "LE", name: "Left End", x: 0.20, y: 0.30, group: "line" },
@@ -163,7 +163,7 @@
         assignmentsFile: "kickoff_return_assignments.json",
         lineY: 0.22, lineLabel: "FRONT",
         deriveTags: [],
-        groupColors: { front: "#d8e9ff", mid: "#ffd54a", returner: "#ffc72c" },
+        groupColors: { front: "#d8e9ff", mid: "#a9d3ff", returner: "#5bb0ff" },
         groupLabel: { front: "Front line", mid: "Mid blocker", returner: "Returner" },
         slots: [
           { key: "F1", name: "Front 1", x: 0.14, y: 0.22, group: "front" },
@@ -185,7 +185,7 @@
         assignmentsFile: "punt_block_assignments.json",
         lineY: 0.30, lineLabel: "LOS",
         deriveTags: [],
-        groupColors: { rush: "#d8e9ff", jam: "#ffd54a", mid: "#ffc72c", returner: "#e6e6e6" },
+        groupColors: { rush: "#d8e9ff", jam: "#a9d3ff", mid: "#5bb0ff", returner: "#e6e6e6" },
         groupLabel: { rush: "Rusher", jam: "Jammer", mid: "Middle", returner: "Returner" },
         slots: [
           { key: "LJ", name: "Left Jammer", x: 0.06, y: 0.30, group: "jam" },
@@ -409,15 +409,15 @@
       useEffect(() => { if (view !== "all" && Number(view) > depth - 1) setView(String(Math.max(0, depth - 1))); }, [depth, view]);
 
       return (
-        <div style={{ minHeight: "100%", background: "radial-gradient(120% 120% at 50% 0%, #15422a 0%, #0c2e1d 55%, #082316 100%)", fontFamily: "'Barlow Condensed','Oswald',system-ui,sans-serif", color: "#eef3ee", padding: "20px 16px 60px", boxSizing: "border-box" }}>
+        <div style={{ minHeight: "100%", background: "radial-gradient(120% 120% at 50% 0%, #163a5f 0%, #0c2742 55%, #07182b 100%)", fontFamily: "'Barlow Condensed','Oswald',system-ui,sans-serif", color: "#eef4fb", padding: "20px 16px 60px", boxSizing: "border-box" }}>
           <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
             .osw{font-family:'Oswald',sans-serif;letter-spacing:.5px;}
-            .btn{cursor:pointer;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eef3ee;padding:7px 12px;border-radius:7px;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;transition:.15s;}
-            .btn:hover{background:rgba(255,199,44,.18);border-color:#ffc72c;}
-            .sel{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eef3ee;border-radius:6px;padding:5px 6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;outline:none;}
-            .sel:focus{border-color:#ffc72c;}
-            .sel option{background:#123524;color:#eef3ee;}
+            .btn{cursor:pointer;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eef4fb;padding:7px 12px;border-radius:7px;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;transition:.15s;}
+            .btn:hover{background:rgba(91,176,255,.18);border-color:#5bb0ff;}
+            .sel{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eef4fb;border-radius:6px;padding:5px 6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;outline:none;}
+            .sel:focus{border-color:#5bb0ff;}
+            .sel option{background:#10243f;color:#eef4fb;}
             .player:hover{filter:brightness(1.07);}
             @media print{.noprint{display:none!important;}}
           `}</style>
@@ -425,11 +425,11 @@
           <div style={{ maxWidth: 1080, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
               <div>
-                <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#ffc72c", textTransform: "uppercase" }}>Special Teams · Playbook</div>
+                <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#5bb0ff", textTransform: "uppercase" }}>Special Teams · Playbook</div>
                 <input value={title} onChange={(e) => setTitle(e.target.value)} className="osw" style={{ background: "transparent", border: "none", outline: "none", color: "#fff", fontSize: 32, fontWeight: 700, padding: 0, width: "min(540px,80vw)" }} />
               </div>
               <div className="noprint" style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-                <button className="btn" onClick={() => setActiveOnly((v) => !v)} title="Show only active players in the roster and dropdowns" style={activeOnly ? { background: "rgba(255,199,44,.2)", borderColor: "#ffc72c", color: "#ffe7a3" } : {}}>{activeOnly ? "Active only: ON" : "Active only: OFF"}</button>
+                <button className="btn" onClick={() => setActiveOnly((v) => !v)} title="Show only active players in the roster and dropdowns" style={activeOnly ? { background: "rgba(91,176,255,.2)", borderColor: "#5bb0ff", color: "#cfe8ff" } : {}}>{activeOnly ? "Active only: ON" : "Active only: OFF"}</button>
                 <button className="btn" onClick={() => athletesFileRef.current && athletesFileRef.current.click()} title="Load a new athletes.json roster (session only)">Import athletes</button>
                 <button className="btn" onClick={() => assignFileRef.current && assignFileRef.current.click()}>Load assignments</button>
                 <button className="btn" onClick={exportAssignments}>Save assignments</button>
@@ -442,10 +442,10 @@
               </div>
             </div>
 
-            {status && <div className="noprint" style={{ fontSize: 13, padding: "8px 12px", borderRadius: 8, marginBottom: 12, border: "1px solid " + (statusType === "err" ? "#ff8c8c" : statusType === "ok" ? "#8ce0a4" : "rgba(255,255,255,.2)"), background: "rgba(0,0,0,.18)", color: statusType === "err" ? "#ffc4c4" : statusType === "ok" ? "#bdf2cd" : "#cfe0d4" }}>{status}</div>}
+            {status && <div className="noprint" style={{ fontSize: 13, padding: "8px 12px", borderRadius: 8, marginBottom: 12, border: "1px solid " + (statusType === "err" ? "#ff8c8c" : statusType === "ok" ? "#8ce0a4" : "rgba(255,255,255,.2)"), background: "rgba(0,0,0,.18)", color: statusType === "err" ? "#ffc4c4" : statusType === "ok" ? "#bdf2cd" : "#cfe0f0" }}>{status}</div>}
 
             <div className="noprint" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span className="osw" style={{ fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: "#cfe0d4" }}>Field shows</span>
+              <span className="osw" style={{ fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: "#cfe0f0" }}>Field shows</span>
               <select className="sel" value={view} onChange={(e) => setView(e.target.value)} style={{ width: "auto", padding: "4px 8px" }}>
                 <option value="0">Starters</option>
                 {Array.from({ length: depth - 1 }).map((_, i) => <option key={i + 1} value={String(i + 1)}>{"Backup " + (i + 1)}</option>)}
@@ -454,10 +454,10 @@
             </div>
 
             <div style={{ borderRadius: 14, overflow: "hidden", boxShadow: "0 18px 40px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.08)" }}>
-              <svg viewBox={"0 0 " + FW + " " + FH} style={{ width: "100%", display: "block", background: "linear-gradient(180deg,#15532f,#0e3c22)" }}>
+              <svg viewBox={"0 0 " + FW + " " + FH} style={{ width: "100%", display: "block", background: "linear-gradient(180deg,#1c4e86,#0e2a52)" }}>
                 {Array.from({ length: 7 }).map((_, i) => <line key={i} x1="0" x2={FW} y1={70 + i * 70} y2={70 + i * 70} stroke="#fff" strokeOpacity="0.15" strokeWidth="1.5" />)}
-                <line x1="0" x2={FW} y1={FH * CFG.lineY - 32} y2={FH * CFG.lineY - 32} stroke="#ffc72c" strokeOpacity="0.5" strokeWidth="2" strokeDasharray="7 6" />
-                <text x="10" y={FH * CFG.lineY - 38} className="osw" fill="#ffc72c" fontSize="11" opacity="0.8">{CFG.lineLabel}</text>
+                <line x1="0" x2={FW} y1={FH * CFG.lineY - 32} y2={FH * CFG.lineY - 32} stroke="#5bb0ff" strokeOpacity="0.5" strokeWidth="2" strokeDasharray="7 6" />
+                <text x="10" y={FH * CFG.lineY - 38} className="osw" fill="#5bb0ff" fontSize="11" opacity="0.8">{CFG.lineLabel}</text>
                 {SLOTS.map((s) => {
                   const cx = s.x * FW, cy = s.y * FH;
                   const lines = slotLines(s.key);
@@ -465,8 +465,8 @@
                   return (
                     <g key={s.key} className="player" style={{ cursor: "pointer" }} onClick={() => setSelected(isSel ? null : s.key)}
                        onDragOver={(e) => allowDrop(e, "field:" + s.key)} onDrop={(e) => doDrop(e, s.key, 0)}>
-                      <circle cx={cx} cy={cy} r="22" fill={GROUP_COLORS[s.group]} stroke={dropKey === "field:" + s.key ? "#ffc72c" : isSel ? "#ff5722" : "#0e3c22"} strokeWidth={dropKey === "field:" + s.key || isSel ? 4 : 2.5} />
-                      <text x={cx} y={cy + 5} textAnchor="middle" className="osw" fontSize="14" fontWeight="700" fill="#11241a">{s.key}</text>
+                      <circle cx={cx} cy={cy} r="22" fill={GROUP_COLORS[s.group]} stroke={dropKey === "field:" + s.key ? "#5bb0ff" : isSel ? "#ff5722" : "#0e2a52"} strokeWidth={dropKey === "field:" + s.key || isSel ? 4 : 2.5} />
+                      <text x={cx} y={cy + 5} textAnchor="middle" className="osw" fontSize="14" fontWeight="700" fill="#0c2742">{s.key}</text>
                       {lines.length === 0
                         ? <text x={cx} y={cy + 36} textAnchor="middle" className="osw" fontSize="12.5" fontWeight="600" fill="#fff" opacity="0.45">—</text>
                         : lines.map((ln, i) => {
@@ -474,7 +474,7 @@
                             return (
                               <text key={ln.d} x={cx} y={cy + 36 + i * 12} textAnchor="middle" className="osw"
                                     fontSize={prominent ? "12.5" : "11"} fontWeight={prominent ? "700" : "500"}
-                                    fill={prominent ? "#fff" : "#cfe9d6"} opacity={prominent ? 1 : 0.85}>
+                                    fill={prominent ? "#fff" : "#cfe0f0"} opacity={prominent ? 1 : 0.85}>
                                 {(view === "all" && ln.d !== 0 ? ln.d + " " : "") + abbr(ln.name)}
                               </text>
                             );
@@ -497,11 +497,11 @@
               <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                    <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#ffc72c", textTransform: "uppercase" }}>Depth Chart — assign from roster</div>
-                    {dupCount > 0 && <span className="osw" title="A player is assigned to two slots at the same depth level" style={{ fontSize: 11, letterSpacing: 0.5, color: "#11241a", background: "#ffb74d", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>! {dupCount} duplicate{dupCount === 1 ? "" : "s"}</span>}
+                    <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#5bb0ff", textTransform: "uppercase" }}>Depth Chart — assign from roster</div>
+                    {dupCount > 0 && <span className="osw" title="A player is assigned to two slots at the same depth level" style={{ fontSize: 11, letterSpacing: 0.5, color: "#0c2742", background: "#ffb74d", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>! {dupCount} duplicate{dupCount === 1 ? "" : "s"}</span>}
                     {inactiveCount > 0 && <span className="osw" title="An inactive player is assigned in the lineup" style={{ fontSize: 11, letterSpacing: 0.5, color: "#fff", background: "#c0392b", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>✕ {inactiveCount} inactive</span>}
                   </div>
-                  <label className="noprint osw" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: "#cfe0d4" }}>
+                  <label className="noprint osw" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, letterSpacing: 1, textTransform: "uppercase", color: "#cfe0f0" }}>
                     Backups
                     <select className="sel" value={depth - 1} onChange={(e) => setDepth(Number(e.target.value) + 1)} style={{ width: "auto", padding: "4px 6px" }}>
                       {Array.from({ length: MAX_DEPTH }).map((_, n) => <option key={n} value={n}>{n}</option>)}
@@ -512,7 +512,7 @@
                   {SLOTS.map((s) => (
                     <div key={s.key} style={{ border: selected === s.key ? "1px solid #ff5722" : "1px solid rgba(255,255,255,.13)", borderRadius: 10, overflow: "hidden", background: "rgba(255,255,255,.03)" }} onClick={() => setSelected(s.key)}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 11px", background: "rgba(0,0,0,.28)" }}>
-                        <span className="osw" style={{ width: 26, height: 26, borderRadius: 6, background: GROUP_COLORS[s.group], color: "#11241a", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 13 }}>{s.key}</span>
+                        <span className="osw" style={{ width: 26, height: 26, borderRadius: 6, background: GROUP_COLORS[s.group], color: "#0c2742", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 13 }}>{s.key}</span>
                         <span className="osw" style={{ fontSize: 14 }}>{s.name}</span>
                       </div>
                       <div style={{ padding: "7px 8px 9px", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -527,10 +527,10 @@
                           const overKey = s.key + ":" + d;
                           return (
                             <div key={d} onDragOver={(e) => allowDrop(e, overKey)} onDrop={(e) => doDrop(e, s.key, d)}
-                                 style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 6, outline: dropKey === overKey ? "2px dashed #ffc72c" : "none", outlineOffset: 1, background: dropKey === overKey ? "rgba(255,199,44,.12)" : "transparent" }}>
-                              <span style={{ flex: "0 0 14px", fontSize: 11, color: d === 0 ? "#ffc72c" : "#8fae9d", fontWeight: 700 }}>{d === 0 ? "S" : d}</span>
+                                 style={{ display: "flex", alignItems: "center", gap: 6, borderRadius: 6, outline: dropKey === overKey ? "2px dashed #5bb0ff" : "none", outlineOffset: 1, background: dropKey === overKey ? "rgba(91,176,255,.12)" : "transparent" }}>
+                              <span style={{ flex: "0 0 14px", fontSize: 11, color: d === 0 ? "#5bb0ff" : "#8fa6c4", fontWeight: 700 }}>{d === 0 ? "S" : d}</span>
                               <select className="sel" value={cur == null ? "" : cur} onChange={(e) => setSlot(s.key, d, e.target.value || null)}
-                                      style={{ ...(d === 0 ? { background: "rgba(255,199,44,.14)" } : {}), ...(inactive ? { borderColor: "#ff8c8c", boxShadow: "0 0 0 1px #ff8c8c" } : dup ? { borderColor: "#ffb74d", boxShadow: "0 0 0 1px #ffb74d" } : {}) }}>
+                                      style={{ ...(d === 0 ? { background: "rgba(91,176,255,.14)" } : {}), ...(inactive ? { borderColor: "#ff8c8c", boxShadow: "0 0 0 1px #ff8c8c" } : dup ? { borderColor: "#ffb74d", boxShadow: "0 0 0 1px #ffb74d" } : {}) }}>
                                 <option value="">{d === 0 ? "— starter —" : "—"}</option>
                                 {opts.map((p) => <option key={p.id} value={p.id}>{(p.number != null ? "#" + p.number + " " : "") + p.name}{p.gr ? " (" + p.gr + ")" : ""}{p.active ? "" : " — inactive"}</option>)}
                               </select>
@@ -547,8 +547,8 @@
 
               <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
-                  <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#ffc72c", textTransform: "uppercase" }}>{"Roster (" + (activeOnly ? shownRoster.length + " active" : roster.length + " · " + activeTotal + " active") + ")"}</div>
-                  <label className="noprint" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#cfe0d4", cursor: "pointer" }}>
+                  <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#5bb0ff", textTransform: "uppercase" }}>{"Roster (" + (activeOnly ? shownRoster.length + " active" : roster.length + " · " + activeTotal + " active") + ")"}</div>
+                  <label className="noprint" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#cfe0f0", cursor: "pointer" }}>
                     <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} /> Active only
                   </label>
                 </div>
@@ -559,14 +559,14 @@
                     const isStarter = starterIds.has(p.id);
                     return (
                       <div key={p.id} draggable onDragStart={(e) => onDragStartPlayer(e, p.id)} onDragEnd={endDrag} title="Drag onto a slot or field position"
-                           style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 7px", borderRadius: 7, marginBottom: 3, cursor: "grab", background: dragId === p.id ? "rgba(255,199,44,.22)" : isStarter ? "rgba(255,199,44,.10)" : "transparent", opacity: p.active ? 1 : 0.5 }}>
+                           style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 7px", borderRadius: 7, marginBottom: 3, cursor: "grab", background: dragId === p.id ? "rgba(91,176,255,.22)" : isStarter ? "rgba(91,176,255,.10)" : "transparent", opacity: p.active ? 1 : 0.5 }}>
                         <span style={{ flex: "0 0 9px", color: "rgba(255,255,255,.3)", fontSize: 12, lineHeight: 1 }}>⠿</span>
-                        <span style={{ width: 7, height: 7, borderRadius: 9, flex: "0 0 7px", background: isStarter ? "#ffc72c" : "rgba(255,255,255,.22)" }} title={isStarter ? "Starting" : "Available"} />
-                        <span className="osw" style={{ flex: "0 0 30px", textAlign: "center", fontSize: 12, color: p.number == null ? "rgba(255,255,255,.35)" : "#ffc72c", fontWeight: 700 }}>{p.number == null ? "—" : p.number}</span>
+                        <span style={{ width: 7, height: 7, borderRadius: 9, flex: "0 0 7px", background: isStarter ? "#5bb0ff" : "rgba(255,255,255,.22)" }} title={isStarter ? "Starting" : "Available"} />
+                        <span className="osw" style={{ flex: "0 0 30px", textAlign: "center", fontSize: 12, color: p.number == null ? "rgba(255,255,255,.35)" : "#5bb0ff", fontWeight: 700 }}>{p.number == null ? "—" : p.number}</span>
                         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
                         {!p.active && <span style={{ flex: "0 0 auto", fontSize: 10, color: "#ff8c8c", border: "1px solid rgba(255,140,140,.5)", borderRadius: 4, padding: "0 4px" }}>inactive</span>}
                         {p.gr && <span style={{ flex: "0 0 auto", fontSize: 11, opacity: .6 }}>gr{p.gr}</span>}
-                        {p.note && <span style={{ flex: "0 0 auto", fontSize: 11, color: "#9cbcab", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.note}</span>}
+                        {p.note && <span style={{ flex: "0 0 auto", fontSize: 11, color: "#9cb0c8", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.note}</span>}
                       </div>
                     );
                   })}

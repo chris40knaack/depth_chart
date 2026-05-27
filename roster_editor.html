@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roster Editor</title>
-  <style>html,body,#root{margin:0;height:100%;background:#082316;}</style>
+  <style>html,body,#root{margin:0;height:100%;background:#07182b;}</style>
 
   <!-- React + Babel from CDN (needs internet on first open) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -125,7 +125,7 @@
     function Group({ title, children }) {
       return (
         <div style={{ border: "1px solid rgba(255,255,255,.12)", borderRadius: 10, padding: "10px 12px 12px", background: "rgba(255,255,255,.03)", marginBottom: 12 }}>
-          <div className="osw" style={{ fontSize: 12, letterSpacing: 1.5, color: "#ffc72c", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
+          <div className="osw" style={{ fontSize: 12, letterSpacing: 1.5, color: "#5bb0ff", textTransform: "uppercase", marginBottom: 8 }}>{title}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: "8px 12px" }}>{children}</div>
         </div>
       );
@@ -242,25 +242,25 @@
       );
 
       return (
-        <div style={{ minHeight: "100%", background: "radial-gradient(120% 120% at 50% 0%, #15422a 0%, #0c2e1d 55%, #082316 100%)", fontFamily: "'Barlow Condensed','Oswald',system-ui,sans-serif", color: "#eef3ee", padding: "20px 16px 60px", boxSizing: "border-box" }}>
+        <div style={{ minHeight: "100%", background: "radial-gradient(120% 120% at 50% 0%, #163a5f 0%, #0c2742 55%, #07182b 100%)", fontFamily: "'Barlow Condensed','Oswald',system-ui,sans-serif", color: "#eef4fb", padding: "20px 16px 60px", boxSizing: "border-box" }}>
           <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
             .osw{font-family:'Oswald',sans-serif;letter-spacing:.5px;}
-            .btn{cursor:pointer;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eef3ee;padding:7px 12px;border-radius:7px;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;transition:.15s;}
-            .btn:hover{background:rgba(255,199,44,.18);border-color:#ffc72c;}
-            .sel{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eef3ee;border-radius:6px;padding:5px 6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;outline:none;}
-            .sel:focus{border-color:#ffc72c;}
-            .sel option{background:#123524;color:#eef3ee;}
-            .inp{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:6px;color:#eef3ee;outline:none;font-family:'Barlow Condensed',sans-serif;font-size:14px;padding:5px 6px;}
-            .inp:focus{border-color:#ffc72c;}
-            .ro{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:#bfe9cf;padding:5px 6px;border:1px dashed rgba(255,255,255,.16);border-radius:6px;background:rgba(0,0,0,.18);}
+            .btn{cursor:pointer;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#eef4fb;padding:7px 12px;border-radius:7px;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;transition:.15s;}
+            .btn:hover{background:rgba(91,176,255,.18);border-color:#5bb0ff;}
+            .sel{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eef4fb;border-radius:6px;padding:5px 6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;outline:none;}
+            .sel:focus{border-color:#5bb0ff;}
+            .sel option{background:#10243f;color:#eef4fb;}
+            .inp{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:6px;color:#eef4fb;outline:none;font-family:'Barlow Condensed',sans-serif;font-size:14px;padding:5px 6px;}
+            .inp:focus{border-color:#5bb0ff;}
+            .ro{font-family:'Barlow Condensed',sans-serif;font-size:14px;color:#cfe0f0;padding:5px 6px;border:1px dashed rgba(255,255,255,.16);border-radius:6px;background:rgba(0,0,0,.18);}
             .row:hover{background:rgba(255,255,255,.06);}
           `}</style>
 
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
               <div>
-                <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#ffc72c", textTransform: "uppercase" }}>Special Teams · Data</div>
+                <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#5bb0ff", textTransform: "uppercase" }}>Special Teams · Data</div>
                 <div className="osw" style={{ color: "#fff", fontSize: 32, fontWeight: 700 }}>Roster Editor</div>
               </div>
               <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
@@ -272,12 +272,12 @@
               </div>
             </div>
 
-            {status && <div style={{ fontSize: 13, padding: "8px 12px", borderRadius: 8, marginBottom: 12, border: "1px solid " + (statusType === "err" ? "#ff8c8c" : statusType === "ok" ? "#8ce0a4" : "rgba(255,255,255,.2)"), background: "rgba(0,0,0,.18)", color: statusType === "err" ? "#ffc4c4" : statusType === "ok" ? "#bdf2cd" : "#cfe0d4" }}>{status}</div>}
+            {status && <div style={{ fontSize: 13, padding: "8px 12px", borderRadius: 8, marginBottom: 12, border: "1px solid " + (statusType === "err" ? "#ff8c8c" : statusType === "ok" ? "#8ce0a4" : "rgba(255,255,255,.2)"), background: "rgba(0,0,0,.18)", color: statusType === "err" ? "#ffc4c4" : statusType === "ok" ? "#bdf2cd" : "#cfe0f0" }}>{status}</div>}
 
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,300px) minmax(0,1fr)", gap: 16, alignItems: "start" }}>
               {/* roster list */}
               <div>
-                <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#ffc72c", textTransform: "uppercase", marginBottom: 8 }}>
+                <div className="osw" style={{ fontSize: 13, letterSpacing: 2.5, color: "#5bb0ff", textTransform: "uppercase", marginBottom: 8 }}>
                   Athletes ({athletes.length}) · {activeCount} active
                 </div>
                 <input className="inp" placeholder="Search name / number / slot…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 8 }} />
@@ -286,8 +286,8 @@
                   {filtered.map((a) => {
                     const isSel = a.id === selectedId;
                     return (
-                      <div key={a.id} className="row" onClick={() => setSelectedId(a.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 7px", borderRadius: 7, marginBottom: 3, cursor: "pointer", background: isSel ? "rgba(255,199,44,.16)" : "transparent", border: isSel ? "1px solid #ffc72c" : "1px solid transparent" }}>
-                        <span className="osw" style={{ minWidth: 30, textAlign: "center", fontWeight: 700, fontSize: 13, color: a.number == null ? "rgba(255,255,255,.35)" : "#ffc72c" }}>{a.number == null ? "—" : a.number}</span>
+                      <div key={a.id} className="row" onClick={() => setSelectedId(a.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 7px", borderRadius: 7, marginBottom: 3, cursor: "pointer", background: isSel ? "rgba(91,176,255,.16)" : "transparent", border: isSel ? "1px solid #5bb0ff" : "1px solid transparent" }}>
+                        <span className="osw" style={{ minWidth: 30, textAlign: "center", fontWeight: 700, fontSize: 13, color: a.number == null ? "rgba(255,255,255,.35)" : "#5bb0ff" }}>{a.number == null ? "—" : a.number}</span>
                         <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: a.active ? 1 : 0.55 }}>{a.name.full || "(unnamed)"}</span>
                         <span style={{ fontSize: 11, opacity: 0.6 }}>{a.grade ? "gr" + a.grade : ""} {a.positions.puntPrimary || ""}</span>
                       </div>
@@ -305,7 +305,7 @@
                 ) : (
                   <div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                      <div className="osw" style={{ fontSize: 20, fontWeight: 700 }}>{selected.name.full || "(unnamed)"} <span style={{ color: "#ffc72c" }}>{selected.number == null ? "" : "#" + selected.number}</span></div>
+                      <div className="osw" style={{ fontSize: 20, fontWeight: 700 }}>{selected.name.full || "(unnamed)"} <span style={{ color: "#5bb0ff" }}>{selected.number == null ? "" : "#" + selected.number}</span></div>
                       <button className="btn" onClick={() => removeAthlete(selected.id)} style={{ borderColor: "rgba(255,140,140,.5)", color: "#ffb4b4" }}>Delete</button>
                     </div>
 
