@@ -19,12 +19,10 @@ coaches privately; they load them with the in-app Import buttons.
 
 ## Regenerate these files
 
-From the parent project folder:
+From the parent project folder, one command rebuilds every page (local + dist):
 
 ```powershell
-.\build_html.ps1                     -NoData -Html .\dist\shield_punt.html
-.\build_html.ps1 -Formation kickoff  -NoData -Html .\dist\kickoff_coverage.html
-.\build_roster_editor.ps1            -NoData -Html .\dist\roster_editor.html
+.\build_all.ps1
 ```
 
 ## Publish (GitHub Pages)
