@@ -6,6 +6,7 @@ data), so it is safe to publish on GitHub Pages / Netlify / any static host.
 
 - `index.html` — landing page
 - `shield_punt.html` — Shield Punt Designer (data-less)
+- `kickoff_coverage.html` — Kickoff Coverage Designer (data-less)
 - `roster_editor.html` — Roster Editor (data-less)
 - `.nojekyll` — tells GitHub Pages to serve the files as-is
 
@@ -21,8 +22,9 @@ coaches privately; they load them with the in-app Import buttons.
 From the parent project folder:
 
 ```powershell
-.\build_html.ps1          -NoData -Html .\dist\shield_punt.html
-.\build_roster_editor.ps1 -NoData -Html .\dist\roster_editor.html
+.\build_html.ps1                     -NoData -Html .\dist\shield_punt.html
+.\build_html.ps1 -Formation kickoff  -NoData -Html .\dist\kickoff_coverage.html
+.\build_roster_editor.ps1            -NoData -Html .\dist\roster_editor.html
 ```
 
 ## Publish (GitHub Pages)
