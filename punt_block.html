@@ -13,18 +13,11 @@
 </head>
 <body>
   <div id="root"></div>
-
-  <!-- Shim: back the artifact-runtime window.storage with localStorage so
-       assignment edits persist between sessions in a normal browser. -->
+  <!-- window.storage backed by localStorage (per-device) -->
   <script>
     window.storage = {
-      async get(key) {
-        const value = localStorage.getItem(key);
-        return value === null ? null : { value };
-      },
-      async set(key, value) {
-        localStorage.setItem(key, String(value));
-      },
+      async get(key) { const value = localStorage.getItem(key); return value === null ? null : { value }; },
+      async set(key, value) { localStorage.setItem(key, String(value)); },
     };
   </script>
   <!-- which special-teams unit this page is -->
@@ -261,6 +254,7 @@
 
     const STORAGE_KEY = CFG.prefix + ":assign:v1"; // assignments only — roster comes from athletes.json
     const ROSTER_KEY = CFG.prefix + ":roster:v1"; // imported roster, persisted only in the data-less build
+    const SHARED = typeof window !== "undefined" && !!window.__API__; // true on the Cloudflare (shared KV) build
 
     function FormationDesigner() {
       const [roster, setRoster] = useState(ROSTER);
@@ -275,6 +269,7 @@
       const [activeOnly, setActiveOnly] = useState(false); // filter roster + dropdowns to active players
       const [dragId, setDragId] = useState(null);  // player id being dragged
       const [dropKey, setDropKey] = useState(null); // hovered drop target ("LE:0" or "field:LE")
+      const [savedMeta, setSavedMeta] = useState(null); // { savedBy, savedAt } from the shared backend
       const assignFileRef = useRef(null);
       const athletesFileRef = useRef(null);
 
@@ -293,9 +288,13 @@
               }
             }
           } catch (e) {}
-          if (!HAS_BAKED) {
+          if (typeof window !== "undefined" && window.__API__) {
+            // shared roster from the Roster Editor's store (same KV backend)
+            try { const rr = await window.storage.get("rostereditor:v1"); if (rr && rr.value) { const list = ((JSON.parse(rr.value).athletes) || []).map(athleteToPlayer); if (list.length) setRoster(list); } } catch (e) {}
+          } else if (!HAS_BAKED) {
             try { const rr = await window.storage.get(ROSTER_KEY); if (rr && rr.value) { const list = JSON.parse(rr.value); if (Array.isArray(list) && list.length) setRoster(list); } } catch (e) {}
           }
+          if (SHARED) { try { const mr = await window.storage.get(STORAGE_KEY + ":meta"); if (mr && mr.value) setSavedMeta(JSON.parse(mr.value)); } catch (e) {} }
           setLoaded(true);
         })();
       }, []);
@@ -303,7 +302,12 @@
       // autosave assignments (not the roster)
       useEffect(() => {
         if (!loaded) return;
-        const t = setTimeout(async () => { try { await window.storage.set(STORAGE_KEY, JSON.stringify({ assign, title, depth })); } catch (e) {} }, 400);
+        const t = setTimeout(async () => {
+          try {
+            await window.storage.set(STORAGE_KEY, JSON.stringify({ assign, title, depth }));
+            if (SHARED) { const mr = await window.storage.get(STORAGE_KEY + ":meta"); if (mr && mr.value) setSavedMeta(JSON.parse(mr.value)); }
+          } catch (e) {}
+        }, 400);
         return () => clearTimeout(t);
       }, [assign, title, depth, loaded]);
 
@@ -427,6 +431,13 @@
               <div>
                 <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#5bb0ff", textTransform: "uppercase" }}>Special Teams · Playbook</div>
                 <input value={title} onChange={(e) => setTitle(e.target.value)} className="osw" style={{ background: "transparent", border: "none", outline: "none", color: "#fff", fontSize: 32, fontWeight: 700, padding: 0, width: "min(540px,80vw)" }} />
+                {SHARED && (
+                  <div className="osw" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, fontSize: 11, letterSpacing: 0.5, color: "#8fa6c4", flexWrap: "wrap" }}>
+                    <span style={{ width: 7, height: 7, borderRadius: 9, background: "#5bb0ff", flex: "0 0 7px" }} />
+                    Shared — saves to all coaches
+                    {savedMeta && savedMeta.savedBy && <span style={{ opacity: 0.85 }}>· last saved by {savedMeta.savedBy}{savedMeta.savedAt ? " · " + new Date(savedMeta.savedAt).toLocaleString() : ""}</span>}
+                  </div>
+                )}
               </div>
               <div className="noprint" style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
                 <button className="btn" onClick={() => setActiveOnly((v) => !v)} title="Show only active players in the roster and dropdowns" style={activeOnly ? { background: "rgba(91,176,255,.2)", borderColor: "#5bb0ff", color: "#cfe8ff" } : {}}>{activeOnly ? "Active only: ON" : "Active only: OFF"}</button>

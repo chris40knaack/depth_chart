@@ -14,20 +14,13 @@
 <body>
   <div id="root"></div>
 
-  <!-- Shim: back the artifact-runtime window.storage with localStorage so
-       edits persist between sessions in a normal browser. -->
+  <!-- window.storage backed by localStorage (per-device) -->
   <script>
     window.storage = {
-      async get(key) {
-        const value = localStorage.getItem(key);
-        return value === null ? null : { value };
-      },
-      async set(key, value) {
-        localStorage.setItem(key, String(value));
-      },
+      async get(key) { const value = localStorage.getItem(key); return value === null ? null : { value }; },
+      async set(key, value) { localStorage.setItem(key, String(value)); },
     };
   </script>
-
   <!-- Roster data baked in at build time from athletes.json -->
   <script>
     window.__ATHLETES__ =
@@ -54,6 +47,7 @@
 
     const PUNT_SLOTS = ["LE", "LT", "LG", "LS", "RG", "RT", "RE", "LW", "PP", "RW", "P"];
     const STORAGE_KEY = "rostereditor:v1";
+    const SHARED = typeof window !== "undefined" && !!window.__API__; // true on the Cloudflare (shared KV) build
 
     const numOrNull = (v) => { const t = String(v).trim(); if (t === "") return null; const n = Number(t); return Number.isNaN(n) ? null : n; };
     const strOrNull = (v) => { const t = String(v).trim(); return t === "" ? null : t; };
@@ -138,6 +132,7 @@
       const [status, setStatus] = useState("");
       const [statusType, setStatusType] = useState("info");
       const [loaded, setLoaded] = useState(false);
+      const [savedMeta, setSavedMeta] = useState(null); // { savedBy, savedAt } from the shared backend
       const fileRef = useRef(null);
 
       useEffect(() => {
@@ -153,13 +148,19 @@
               }
             }
           } catch (e) {}
+          if (SHARED) { try { const mr = await window.storage.get(STORAGE_KEY + ":meta"); if (mr && mr.value) setSavedMeta(JSON.parse(mr.value)); } catch (e) {} }
           setLoaded(true);
         })();
       }, []);
 
       useEffect(() => {
         if (!loaded) return;
-        const t = setTimeout(async () => { try { await window.storage.set(STORAGE_KEY, JSON.stringify({ athletes })); } catch (e) {} }, 400);
+        const t = setTimeout(async () => {
+          try {
+            await window.storage.set(STORAGE_KEY, JSON.stringify({ athletes }));
+            if (SHARED) { const mr = await window.storage.get(STORAGE_KEY + ":meta"); if (mr && mr.value) setSavedMeta(JSON.parse(mr.value)); }
+          } catch (e) {}
+        }, 400);
         return () => clearTimeout(t);
       }, [athletes, loaded]);
 
@@ -262,6 +263,13 @@
               <div>
                 <div className="osw" style={{ fontSize: 12, letterSpacing: 3, color: "#5bb0ff", textTransform: "uppercase" }}>Special Teams · Data</div>
                 <div className="osw" style={{ color: "#fff", fontSize: 32, fontWeight: 700 }}>Roster Editor</div>
+                {SHARED && (
+                  <div className="osw" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, fontSize: 11, letterSpacing: 0.5, color: "#8fa6c4", flexWrap: "wrap" }}>
+                    <span style={{ width: 7, height: 7, borderRadius: 9, background: "#5bb0ff", flex: "0 0 7px" }} />
+                    Shared — edits save to all coaches
+                    {savedMeta && savedMeta.savedBy && <span style={{ opacity: 0.85 }}>· last saved by {savedMeta.savedBy}{savedMeta.savedAt ? " · " + new Date(savedMeta.savedAt).toLocaleString() : ""}</span>}
+                  </div>
+                )}
               </div>
               <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
                 <button className="btn" onClick={addAthlete}>+ Add athlete</button>
